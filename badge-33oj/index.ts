@@ -2,14 +2,6 @@ import {
     db, definePlugin, UserModel, Handler, UserNotFoundError, NotFoundError, param, PermissionError, PRIV, Types,
 } from 'hydrooj';
 
-class BadgeShowHandler extends Handler {
-    async get() {
-        const udocs = await UserModel.getMulti({ badge: { $exists: true, $ne: "" } }).toArray();
-        this.response.template = 'badge_show.html'; // 返回此页面
-        this.response.body = { udocs };
-    }
-}
-
 class BadgeCreateHandler extends Handler {
     async get() {
         this.response.template = 'badge_create.html'; // 返回此页面
@@ -34,7 +26,7 @@ class BadgeCreateHandler extends Handler {
         // 构建徽章代码并更新
         await UserModel.setById(udoc._id, { badge: text + color + textColor });
         // 将用户重定向到创建完成的url
-        this.response.redirect = "/badge";
+        this.response.redirect = "/manage/badge";
     }
 }
 
@@ -51,14 +43,13 @@ class BadgeDelHandler extends Handler {
     @param('uid', Types.Int)
     async get(domainId: string, uid: number) {
         await UserModel.setById(uid, { badge: "" });
-        this.response.redirect = "/badge/manage";
+        this.response.redirect = "/manage/badge";
     }
 }
 
 export async function apply(ctx: Context) {
-    ctx.Route('badge_show', '/badge', BadgeShowHandler, PRIV.PRIV_USER_PROFILE);
-    ctx.Route('badge_create', '/badge/create', BadgeCreateHandler, PRIV.PRIV_CREATE_DOMAIN);
-    ctx.Route('badge_manage', '/badge/manage', BadgeManageHandler, PRIV.PRIV_CREATE_DOMAIN);
-    ctx.Route('badge_del', '/badge/manage/:uid/del', BadgeDelHandler, PRIV.PRIV_CREATE_DOMAIN);
+    ctx.Route('badge_create', '/manage/badge/create', BadgeCreateHandler, PRIV.PRIV_CREATE_DOMAIN);
+    ctx.Route('badge_manage', '/manage/badge', BadgeManageHandler, PRIV.PRIV_CREATE_DOMAIN);
+    ctx.Route('badge_del', '/manage/badge/:uid/del', BadgeDelHandler, PRIV.PRIV_CREATE_DOMAIN);
+    ctx.injectUI('ControlPanel', 'badge_manage');
 }
-
