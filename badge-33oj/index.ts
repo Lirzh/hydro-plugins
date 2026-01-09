@@ -2,6 +2,14 @@ import {
     db, definePlugin, UserModel, Handler, UserNotFoundError, NotFoundError, param, PermissionError, PRIV, Types,
 } from 'hydrooj';
 
+class BadgeShowHandler extends Handler {
+    async get() {
+        const udocs = await UserModel.getMulti({ badge: { $exists: true, $ne: "" } }).toArray();
+        this.response.template = 'badge_show.html'; // 返回此页面
+        this.response.body = { udocs };
+    }
+}
+
 class BadgeCreateHandler extends Handler {
     async get() {
         this.response.template = 'badge_create.html'; // 返回此页面
@@ -48,6 +56,7 @@ class BadgeDelHandler extends Handler {
 }
 
 export async function apply(ctx: Context) {
+    ctx.Route('badge_show', '/badge', BadgeShowHandler, PRIV.PRIV_USER_PROFILE);
     ctx.Route('badge_create', '/manage/badge/create', BadgeCreateHandler, PRIV.PRIV_CREATE_DOMAIN);
     ctx.Route('badge_manage', '/manage/badge', BadgeManageHandler, PRIV.PRIV_CREATE_DOMAIN);
     ctx.Route('badge_del', '/manage/badge/:uid/del', BadgeDelHandler, PRIV.PRIV_CREATE_DOMAIN);
